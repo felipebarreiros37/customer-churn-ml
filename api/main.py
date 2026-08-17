@@ -1,6 +1,13 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from src.predict import predict_churn
+from datetime import datetime
+import logging
+
+
+# Configuração de logs
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("churn-monitor")
 
 
 app = FastAPI(
@@ -46,5 +53,15 @@ def predict(customer: Customer):
     customer_data = customer.model_dump()
 
     result = predict_churn(customer_data)
+
+    # Monitoring
+    logger.info(
+        "prediction_time=%s prediction=%s probability=%.4f tenure=%s monthly_charges=%.2f",
+        datetime.now().isoformat(),
+        result["prediction_label"],
+        result["churn_probability"],
+        customer.tenure,
+        customer.MonthlyCharges
+    )
 
     return result
